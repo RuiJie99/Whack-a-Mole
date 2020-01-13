@@ -27,6 +27,7 @@ imageTarger = pygame.image.load("image_target.png")
 scoreBoard = pygame.image.load("SCOREBOARD.png")
 startScreen = pygame.image.load("start_screen.png")
 
+
 class difficulty:
     Easy = 10
     Hard = 5
@@ -47,7 +48,7 @@ future methods:
 
 #TODO: restructure code (isolate mole as class)
 #TODO: restructure code (isolate scoreBoard as class)
-
+#TODO: restucture code (isolate hammer as class)
 
 class map:
     def __init__(self):
@@ -86,8 +87,7 @@ class map:
                 #TODO: get mouse pos
                 #TODO: check if inside
                 posMouse = pygame.mouse.get_pos()
-                if (event.type == pygame.MOUSEBUTTONDOWN):
-                    print(posMouse)
+
                 if ((event.type == pygame.MOUSEBUTTONDOWN)
                     and (self.checkMouseInside(111,380,250,300, posMouse))):
                     quitScreen = true
@@ -126,7 +126,6 @@ class map:
         positionArray = self.getPossiblePositions()
         x = random.randint(0, len(positionArray)-1)
         position = positionArray[x]
-        print(position)
         return position
 
     def drawBlock(self, image, position):
@@ -156,12 +155,15 @@ class map:
         display_surf.blit(imageWall, newBlockCenter)
         display_surf.blit(imageWall, newBlockBottomRight)
         display_surf.blit(imageWall, newBlockUpLeft)
+
         display_surf.blit(imageWall, newBlockUpRight)
         display_surf.blit(imageWall, newBlockBottomLeft)
         display_surf.blit(imageWall, newBlockUp)
+
         display_surf.blit(imageWall, newBlockBottom)
         display_surf.blit(imageWall, newBlockRight)
         display_surf.blit(imageWall, newBlockLeft)
+
         display_surf.blit(imageWall, newBlockLeft2)
         display_surf.blit(imageWall, newBlockUpRight2)
         display_surf.blit(imageWall, newBlockBottomRight2)
@@ -170,18 +172,19 @@ class map:
 
     def moleClickDetection(self, posMouse, posMole, initialPos):
 
-        posMouse = [posMouse[0], posMouse[1]]
-
         if posMouse == posMole:
             display_surf.blit(imageFinish, tuple(posMouse))
         #click area must be within:
 
         verticalPosUpperLimit = posMole[1]
         verticalLowerLimit = initialPos[1]
+        print('upper : ', verticalPosUpperLimit, 'lower : ', verticalLowerLimit)
 
         #up to 50 pixel to the right of the position of mole
         horizontalLimitLeft = posMole[0]
         horizontalLimitRight = posMole[0] + 50
+        print('upper : ', horizontalLimitLeft, 'lower : ', horizontalLimitRight)
+
 
         inVerticalRange = (posMouse[1] >= verticalPosUpperLimit) and (posMouse[1] <= verticalLowerLimit)
         print(posMouse[1], verticalPosUpperLimit, posMouse[0], verticalLowerLimit)
@@ -197,48 +200,63 @@ class map:
     def moleGoUp(self):
         nbPixel = 0
         nbPixelBackUp = 20
+        a = pygame.time.get_ticks()
         self.drawMap()
+        b = pygame.time.get_ticks()
+        print (b - a)
         moleWhacked = false
+        mole2Whacked = false
+
         #returns a random position
         initialPos = self.returnRandPosition()
         initialPos2 = self.returnRandPosition()
-        Finished = false
-        positionHammer = []
-        while nbPixel < 50 and not Finished:
-            tickCounter = pygame.time.get_ticks() % self.diff
+
+        positionHammer = ()
+
+        while nbPixel < 50 :
+            tickCounter = pygame.time.get_ticks() % 15
             if tickCounter == 0:
                 nbPixel += 1
                 nbPixelBackUp -= 1
+
             #gets position of mouse
             mousePos = pygame.mouse.get_pos()
+
             #blits the background block that the mole is supposed to go to
             blockAbovePos = (initialPos[1] * 50, initialPos[0] * 50 - 50)
             blockAbovePos2 = (initialPos2[1] * 50, initialPos2[0] * 50 - 50)
+
             #blits the mole at position (goes up by one pixel every 20 ticks)
             newPos = (initialPos[1] * 50, (initialPos[0]*50 - nbPixel))
             newPos2 = (initialPos2[1] * 50, (initialPos2[0]*50 - nbPixel))
 
             initPosToBlit = (initialPos[1] * 50, initialPos[0] * 50)
             initPosToBlit2 = (initialPos2[1] * 50, initialPos2[0] * 50)
+
             for event in pygame.event.get():
                 mousePos = pygame.mouse.get_pos()
                 if event.type == pygame.QUIT:
                     sys.exit()
+
                 if event.type == pygame.MOUSEBUTTONDOWN and self.moleClickDetection(mousePos, newPos, [initialPos[1]*50, initialPos[0]*50]):
                     moleWhacked = true
                     positionHammer = (mousePos[0] - 25, mousePos[1] - 25)
-                    initialPos = self.returnRandPosition()
-                    nbPixel = 0
+                    #nbPixel = 0
                     font = pygame.font.SysFont('Comic Sans MS', 20)
+                    print('mole 1')
                     self.score = font.render(str(self.nbMoleHit), False, (0, 0, 0))
-                    print(self.nbMoleHit)
+
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    print([initialPos2[1]*50, initialPos2[0]*50], mousePos)
+
                 if event.type == pygame.MOUSEBUTTONDOWN and self.moleClickDetection(mousePos, newPos, [initialPos2[1]*50, initialPos2[0]*50]):
-                    moleWhacked = true
+                    mole2Whacked = true
                     positionHammer = (mousePos[0] - 25, mousePos[1] - 25)
-                    initialPos = self.returnRandPosition()
-                    nbPixel = 0
+                    #nbPixel = 0
+                    print('mole 2')
                     font = pygame.font.SysFont('Comic Sans MS', 20)
                     self.score = font.render(str(self.nbMoleHit), False, (0, 0, 0))
+
                 if nbPixelBackUp <= 0:
                     nbPixelBackUp = 20
                     self.drawMap()
@@ -246,18 +264,24 @@ class map:
 
             # counts how many ticks has passed
             self.blitBlocksAroundHammer(mousePos)
-            display_surf.blit(imageWall, blockAbovePos)
-            display_surf.blit(imageTarger, newPos)
 
-            display_surf.blit(imageWall, blockAbovePos2)
-            display_surf.blit(imageTarger, newPos2)
+            if not moleWhacked:
+                display_surf.blit(imageWall, blockAbovePos)
+                display_surf.blit(imageTarger, newPos)
+                display_surf.blit(imageWall, initPosToBlit)
+
+            if not mole2Whacked:
+                display_surf.blit(imageWall, blockAbovePos2)
+                display_surf.blit(imageTarger, newPos2)
+                display_surf.blit(imageWall, initPosToBlit2)
 
             #blits the background at the original position of the mole
-            display_surf.blit(imageWall,initPosToBlit)
-            display_surf.blit(imageWall, initPosToBlit2)
+            #display_surf.blit(imageWall,initPosToBlit)
+            #display_surf.blit(imageWall, initPosToBlit2)
+
             #blits the hammer
             display_surf.blit(imagePlayer, mousePos)
-            if moleWhacked:
+            if moleWhacked or mole2Whacked:
                 display_surf.blit(imageFinish, positionHammer)
 
             #blits the background over the mole
@@ -268,7 +292,6 @@ class map:
             display_surf.blit(self.score, (70, 20))
 
             pygame.display.update()
-
 
     def start_play(self):
         #TODO:
@@ -288,7 +311,6 @@ def clearImage():
     imageArray = numpy.array(image2BCleared)
     width, height = image2BCleared.size
     transparent = (255, 255, 255, 0)
-
 
     for i in range(0, width):
         for j in range(0, height):
