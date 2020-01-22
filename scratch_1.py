@@ -193,9 +193,6 @@ class map:
             self.nbMoleHit += 1
         return (inVerticalRange and inHorizontalRange)
 
-    def blitScore(self, score):
-        # TODO: blit score to score board
-        arrayScore = []
 
     def moleGoUp(self):
         nbPixel = 0
@@ -205,7 +202,6 @@ class map:
         b = pygame.time.get_ticks()
         print (b - a)
         moleWhacked = false
-        mole2Whacked = false
 
         #returns a random position
         initialPos = self.returnRandPosition()
@@ -214,7 +210,7 @@ class map:
         positionHammer = ()
 
         while nbPixel < 50 :
-            tickCounter = pygame.time.get_ticks() % 15
+            tickCounter = pygame.time.get_ticks() % self.diff
             if tickCounter == 0:
                 nbPixel += 1
                 nbPixelBackUp -= 1
@@ -242,25 +238,14 @@ class map:
                     moleWhacked = true
                     positionHammer = (mousePos[0] - 25, mousePos[1] - 25)
                     #nbPixel = 0
+                    initialPos = self.returnRandPosition()
                     font = pygame.font.SysFont('Comic Sans MS', 20)
                     print('mole 1')
                     self.score = font.render(str(self.nbMoleHit), False, (0, 0, 0))
 
-                #if event.type == pygame.MOUSEBUTTONDOWN:
-                    #print([initialPos2[1]*50, initialPos2[0]*50], mousePos)
-
-                """if event.type == pygame.MOUSEBUTTONDOWN and self.moleClickDetection(mousePos, newPos, [initialPos2[1]*50, initialPos2[0]*50]):
-                    mole2Whacked = true
-                    positionHammer = (mousePos[0] - 25, mousePos[1] - 25)
-                    #nbPixel = 0
-                    print('mole 2')
-                    font = pygame.font.SysFont('Comic Sans MS', 20)
-                    self.score = font.render(str(self.nbMoleHit), False, (0, 0, 0))"""
-
                 if nbPixelBackUp <= 0:
                     nbPixelBackUp = 20
                     self.drawMap()
-
 
             # counts how many ticks has passed
             self.blitBlocksAroundHammer(mousePos)
@@ -270,15 +255,9 @@ class map:
                 display_surf.blit(imageTarger, newPos)
                 display_surf.blit(imageWall, initPosToBlit)
 
-            """if not mole2Whacked:
-                display_surf.blit(imageWall, blockAbovePos2)
-                display_surf.blit(imageTarger, newPos2)
-                display_surf.blit(imageWall, initPosToBlit2)"""
-
             #blits the background at the original position of the mole
-            #display_surf.blit(imageWall,initPosToBlit)
-            #display_surf.blit(imageWall, initPosToBlit2)
-
+            display_surf.blit(imageWall,initPosToBlit)
+    
             #blits the hammer
             display_surf.blit(imagePlayer, mousePos)
             if moleWhacked:
@@ -317,7 +296,6 @@ def clearImage():
             #NOTE: for new image, specify color
             if tuple(newDataItem) == (255, 255, 255, 255):
                 imageArray[i][j] = transparent
-    dirpath = os.getcwd()
     im = Image.fromarray(imageArray)
     im.save("image_boom.png", "png")
 
