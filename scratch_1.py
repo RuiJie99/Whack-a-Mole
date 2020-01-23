@@ -9,9 +9,6 @@ import os
 
 print(pygame.ver)
 pygame.font.init()
-#just to make it easier
-false = False
-true = True
 
 #lenght and width of player image
 xPlayer = 50
@@ -52,7 +49,7 @@ future methods:
 
 class map:
     def __init__(self):
-        self.gameOver = false
+        self.gameOver = False
         self.width = 10
         self.lenght = 10
         self.nbMoleHit = 0
@@ -74,12 +71,12 @@ class map:
     def checkMouseInside(self, xMin, xMax, yMin, yMax, posMouse):
         if (posMouse[0] > xMin and posMouse[0] < xMax
         and posMouse[1] > yMin and posMouse[1] < yMax):
-            return true
+            return True
         else:
-            return false
+            return False
 
     def start_Screen(self):
-        quitScreen = false
+        quitScreen = False
         display_surf.blit(startScreen, (0,0))
         pygame.display.update()
         while(not quitScreen):
@@ -90,12 +87,12 @@ class map:
 
                 if ((event.type == pygame.MOUSEBUTTONDOWN)
                     and (self.checkMouseInside(111,380,250,300, posMouse))):
-                    quitScreen = true
+                    quitScreen = True
                     self.diff = difficulty.Easy
                 elif((event.type == pygame.MOUSEBUTTONDOWN)
                     and (self.checkMouseInside(111,380,322,366, posMouse))):
                     self.diff = difficulty.Hard
-                    quitScreen = true
+                    quitScreen = True
 
                 if event.type == pygame.QUIT:
                     exit()
@@ -193,6 +190,10 @@ class map:
             self.nbMoleHit += 1
         return (inVerticalRange and inHorizontalRange)
 
+    def blitMole(self, initPosToBlit, newPos, blockAbovePos):
+        display_surf.blit(imageWall, blockAbovePos)
+        display_surf.blit(imageTarger, newPos)
+        display_surf.blit(imageWall, initPosToBlit)
 
     def moleGoUp(self):
         nbPixel = 0
@@ -201,7 +202,7 @@ class map:
         self.drawMap()
         b = pygame.time.get_ticks()
         print (b - a)
-        moleWhacked = false
+        moleWhacked = False
 
         #returns a random position
         initialPos = self.returnRandPosition()
@@ -235,10 +236,10 @@ class map:
                     sys.exit()
 
                 if event.type == pygame.MOUSEBUTTONDOWN and self.moleClickDetection(mousePos, newPos, [initialPos[1]*50, initialPos[0]*50]):
-                    moleWhacked = true
+                    moleWhacked = True
                     positionHammer = (mousePos[0] - 25, mousePos[1] - 25)
                     #nbPixel = 0
-                    initialPos = self.returnRandPosition()
+                    #initialPos = self.returnRandPosition()
                     font = pygame.font.SysFont('Comic Sans MS', 20)
                     print('mole 1')
                     self.score = font.render(str(self.nbMoleHit), False, (0, 0, 0))
@@ -251,9 +252,7 @@ class map:
             self.blitBlocksAroundHammer(mousePos)
 
             if not moleWhacked:
-                display_surf.blit(imageWall, blockAbovePos)
-                display_surf.blit(imageTarger, newPos)
-                display_surf.blit(imageWall, initPosToBlit)
+                self.blitMole(initPosToBlit, newPos, blockAbovePos)
 
             #blits the background at the original position of the mole
             display_surf.blit(imageWall,initPosToBlit)
@@ -261,7 +260,9 @@ class map:
             #blits the hammer
             display_surf.blit(imagePlayer, mousePos)
             if moleWhacked:
+                print(positionHammer)
                 display_surf.blit(imageFinish, positionHammer)
+                return
 
             #blits the background over the mole
             if nbPixel == 50:
@@ -273,19 +274,19 @@ class map:
 
     def start_play(self):
         #TODO:
-        finished = false
+        finished = False
         self.start_Screen()
         while (not finished):
             self.moleGoUp()
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    finished = true
+                    finished = True
 
 
 
-def clearImage():
+def clearImage(path : str):
     #path
-    image2BCleared = Image.open("C:/Users/CIQBILLY/Desktop/Whack-A-Mole/boom.png")
+    image2BCleared = Image.open(path)
     imageArray = numpy.array(image2BCleared)
     width, height = image2BCleared.size
     transparent = (255, 255, 255, 0)
@@ -298,6 +299,7 @@ def clearImage():
                 imageArray[i][j] = transparent
     im = Image.fromarray(imageArray)
     im.save("image_boom.png", "png")
+
 
 mazeDisplayed = map()
 mazeDisplayed.start_play()
