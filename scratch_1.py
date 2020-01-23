@@ -175,16 +175,19 @@ class map:
 
         verticalPosUpperLimit = posMole[1]
         verticalLowerLimit = initialPos[1]
-        print('upper : ', verticalPosUpperLimit, 'lower : ', verticalLowerLimit)
+        #NOTE: for debugging
+        #print('upper : ', verticalPosUpperLimit, 'lower : ', verticalLowerLimit)
 
         #up to 50 pixel to the right of the position of mole
         horizontalLimitLeft = posMole[0]
         horizontalLimitRight = posMole[0] + 50
-        print('upper : ', horizontalLimitLeft, 'lower : ', horizontalLimitRight)
-
+        #NOTE: for debugging
+        #print('upper : ', horizontalLimitLeft, 'lower : ', horizontalLimitRight)
 
         inVerticalRange = (posMouse[1] >= verticalPosUpperLimit) and (posMouse[1] <= verticalLowerLimit)
-        print(posMouse[1], verticalPosUpperLimit, posMouse[0], verticalLowerLimit)
+        #NOTE: for debugging
+        #print(posMouse[1], verticalPosUpperLimit, posMouse[0], verticalLowerLimit)
+        
         inHorizontalRange = (posMouse[0] >= horizontalLimitLeft) and (posMouse[0] <= horizontalLimitRight)
         if (inVerticalRange and inHorizontalRange):
             self.nbMoleHit += 1
@@ -195,9 +198,13 @@ class map:
         display_surf.blit(imageTarger, newPos)
         display_surf.blit(imageWall, initPosToBlit)
 
+    def blitScore(self):
+        font = pygame.font.SysFont('Comic Sans MS', 20)
+        self.score = font.render(str(self.nbMoleHit), False, (0, 0, 0))
+
     def moleGoUp(self):
-        nbPixel = 0
-        nbPixelBackUp = 20
+        posMolePixels = 0
+        countDownTillDrawMap = 20
         a = pygame.time.get_ticks()
         self.drawMap()
         b = pygame.time.get_ticks()
@@ -206,74 +213,60 @@ class map:
 
         #returns a random position
         initialPos = self.returnRandPosition()
-        #initialPos2 = self.returnRandPosition()
-
         positionHammer = ()
 
-        while nbPixel < 50 :
-            tickCounter = pygame.time.get_ticks() % self.diff
-            if tickCounter == 0:
-                nbPixel += 1
-                nbPixelBackUp -= 1
+        while posMolePixels < 50 :
+            # the mole will go up by 1 pixel everytime moleSpeedTickCounter reaches a multiple of pygame.time.get_ticks() % self.diff
+            moleSpeedTickCounter = pygame.time.get_ticks() % self.diff
+            if moleSpeedTickCounter == 0:
+                posMolePixels += 1
+                countDownTillDrawMap -= 1
 
             #gets position of mouse
             mousePos = pygame.mouse.get_pos()
 
             #blits the background block that the mole is supposed to go to
             blockAbovePos = (initialPos[1] * 50, initialPos[0] * 50 - 50)
-            #blockAbovePos2 = (initialPos2[1] * 50, initialPos2[0] * 50 - 50)
 
             #blits the mole at position (goes up by one pixel every 20 ticks)
-            newPos = (initialPos[1] * 50, (initialPos[0]*50 - nbPixel))
-            #newPos2 = (initialPos2[1] * 50, (initialPos2[0]*50 - nbPixel))
+            newPos = (initialPos[1] * 50, (initialPos[0]*50 - posMolePixels))
 
             initPosToBlit = (initialPos[1] * 50, initialPos[0] * 50)
-            #initPosToBlit2 = (initialPos2[1] * 50, initialPos2[0] * 50)
 
             for event in pygame.event.get():
                 mousePos = pygame.mouse.get_pos()
                 if event.type == pygame.QUIT:
                     sys.exit()
-
+                # detect if mole is whacked
                 if event.type == pygame.MOUSEBUTTONDOWN and self.moleClickDetection(mousePos, newPos, [initialPos[1]*50, initialPos[0]*50]):
                     moleWhacked = True
+                    # Assign the position of the hammer for 
                     positionHammer = (mousePos[0] - 25, mousePos[1] - 25)
-                    #nbPixel = 0
-                    #initialPos = self.returnRandPosition()
-                    font = pygame.font.SysFont('Comic Sans MS', 20)
-                    print('mole 1')
-                    self.score = font.render(str(self.nbMoleHit), False, (0, 0, 0))
-
-                if nbPixelBackUp <= 0:
-                    nbPixelBackUp = 20
+                    # Blits the score
+                    self.blitScore()
+                if countDownTillDrawMap <= 0:
+                    # Redraws the whole map when countDownTillDrawMap goes down to 20
+                    countDownTillDrawMap = 20
                     self.drawMap()
 
             # counts how many ticks has passed
             self.blitBlocksAroundHammer(mousePos)
-
             if not moleWhacked:
                 self.blitMole(initPosToBlit, newPos, blockAbovePos)
-
             #blits the background at the original position of the mole
             display_surf.blit(imageWall,initPosToBlit)
-    
             #blits the hammer
             display_surf.blit(imagePlayer, mousePos)
             if moleWhacked:
-                print(positionHammer)
                 display_surf.blit(imageFinish, positionHammer)
-                return
 
             #blits the background over the mole
-            if nbPixel == 50:
-                display_surf.blit(imageWall, (initialPos[1]*50, initialPos[0]*50 - nbPixel))
-
+            if posMolePixels == 50:
+                display_surf.blit(imageWall, (initialPos[1]*50, initialPos[0]*50 - posMolePixels))
             display_surf.blit(self.score, (70, 20))
-
             pygame.display.update()
 
     def start_play(self):
-        #TODO:
         finished = False
         self.start_Screen()
         while (not finished):
@@ -281,7 +274,6 @@ class map:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     finished = True
-
 
 
 def clearImage(path : str):
@@ -300,16 +292,5 @@ def clearImage(path : str):
     im = Image.fromarray(imageArray)
     im.save("image_boom.png", "png")
 
-
 mazeDisplayed = map()
 mazeDisplayed.start_play()
-
-
-
-
-
-
-
-
-
-
